@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer CRUD</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #actions {
+            margin-bottom: 20px;
+        }
+        #actions button {
+            margin-right: 10px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 60%;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #777;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        pre {
+            background: #f7f7f7;
+            padding: 10px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body onload="readCustomers()">
+    <h1>Customer CRUD</h1>
+    <div id="actions">
+        <button onclick="createCustomer()">Create (新增一筆)</button>
+        <button onclick="readCustomers()">Read (讀取資料)</button>
+        <button onclick="updateCustomer()">Update (更新ID=1的資料)</button>
+        <button onclick="deleteCustomer()">Delete (刪除ID=1的資料)</button>
+    </div>
+    
+    <div id="result"></div>
+
+    <script>
+        function createCustomer() {
+            const data = new FormData();
+            data.append("name", "New Customer");
+            data.append("phone", "000111222");
+            data.append("address", "XYZ Street");
+            data.append("age", "35");
+
+            fetch('create.php', {
+                method: 'POST',
+                body: data
+            })
+            .then(response => response.json())
+            .then(json => {
+                alert(json.message);
+                readCustomers(); // 建立後重新讀取列表
+            })
+            .catch(err => console.error(err));
+        }
+
+        function readCustomers() {
+            fetch('read.php')
+            .then(response => response.json())
+            .then(json => {
+                if (Array.isArray(json)) {
+                    // 將 json (Array) 轉成表格顯示
+                    let html = "<table><tr><th>ID</th><th>Name</th><th>Phone</th><th>Address</th><th>Age</th></tr>";
+                    json.forEach(item => {
+                        html += `<tr>
+                                    <td>${item.ID}</td>
+                                    <td>${item.name}</td>
+                                    <td>${item.phone}</td>
+                                    <td>${item.address}</td>
+                                    <td>${item.age}</td>
+                                </tr>`;
+                    });
+                    html += "</table>";
+                    document.getElementById('result').innerHTML = html;
+                } else {
+                    // 傳回單筆或錯誤訊息的情況
+                    document.getElementById('result').textContent = JSON.stringify(json, null, 2);
+                }
+            })
+            .catch(err => console.error(err));
+        }
+
+        function updateCustomer() {
+            // 請確認ID=1的資料存在，若不存在請調整ID
+            const data = {id: "1", name: "Updated Name", phone: "555123456", address: "Updated Address", age: "29"};
+
+            fetch('update.php', {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams(data)
+            })
+            .then(response => response.json())
+            .then(json => {
+                alert(json.message);
+                readCustomers(); // 更新後重新讀取列表
+            })
+            .catch(err => console.error(err));
+        }
+
+        function deleteCustomer() {
+            // 請確認ID=1的資料存在，若不存在請調整ID
+            const data = {id: "1"};
+            fetch('delete.php', {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams(data)
+            })
+            .then(response => response.json())
+            .then(json => {
+                alert(json.message);
+                readCustomers(); // 刪除後重新讀取列表
+            })
+            .catch(err => console.error(err));
+        }
+    </script>
+</body>
+</html>
